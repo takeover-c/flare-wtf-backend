@@ -37,4 +37,9 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.ViewCompilation" Version="2.2.0" PrivateAssets="All" />
     <PackageReference Include="Tamturk.AspNetCore.RequestSigning" Version="1.0.3" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Flare.Base\Flare.Base.csproj" />
+    <ProjectReference Include="..\Flare.Parsers\Flare.Parsers.csproj" />
+  </ItemGroup>
 </Project>
