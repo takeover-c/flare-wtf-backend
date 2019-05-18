@@ -11,7 +11,7 @@ namespace Flare.Parsers {
         private readonly Regex regex;
         
         public CommonLogFormatParser(StreamReader streamReader) : base(streamReader) {
-            regex = new Regex(@"^(.*?)\ (.*?)\ (\S+)\ \[(.*)\] \""(.*?)\ (.*?)\ (.*?)\"" (.*)\ (.*)$", RegexOptions.Compiled);
+            regex = new Regex(@"^(.*?)\ (.*?)\ (.*?)\ \[(.*)\] \""(.*?)\ (.*?)\ (.*?)\"" (.*)\ (.*)$", RegexOptions.Compiled);
         }
         
         public override async Task<FlareContext> ParseSingle() {

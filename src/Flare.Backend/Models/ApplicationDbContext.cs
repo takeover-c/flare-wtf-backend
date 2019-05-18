@@ -163,6 +163,8 @@ namespace Flare.Backend.Models {
         
         public virtual server server { get; set; }
         
+        public int order { get; set; }
+        
         public string domain { get; set; }
     }
 
@@ -174,11 +176,29 @@ namespace Flare.Backend.Models {
         
         public virtual server server { get; set; }
         
-        public int ip_id { get; set; }
+        public long ip_id { get; set; }
         
         public virtual ip_address ip { get; set; }
         
+        public string request_identity { get; set; }
         
+        public string request_user_id { get; set; }
+        
+        public DateTimeOffset? request_date { get; set; }
+        
+        public string request_method { get; set; }
+        
+        public string request_path { get; set; }
+        
+        public string request_query_string { get; set; }
+        
+        public int? request_http_version { get; set; }
+        
+        public int? response_code { get; set; }
+        
+        public int? response_length { get; set; }
+        
+        public int flags { get; set; }
     }
     
     public class ApplicationDbContext : DbContext {
