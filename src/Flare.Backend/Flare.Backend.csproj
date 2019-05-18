@@ -20,6 +20,7 @@
   <ItemGroup>
     <PackageReference Include="libphonenumber-csharp" Version="8.10.10" />
     <PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="1.1.16" />
+    <PackageReference Include="MaxMind.GeoIP2" Version="3.0.0" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Cors" Version="2.2.0" />

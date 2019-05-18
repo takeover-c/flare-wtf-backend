@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flare.Base", "src\Flare.Bas
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flare.Parsers", "src\Flare.Parsers\Flare.Parsers.csproj", "{162C7F2B-F58D-4B22-992D-12492C970D17}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flare.Filters", "src\Flare.Filters\Flare.Filters.csproj", "{F85B81BA-E26D-40BD-84F0-20AAD9B3C972}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -43,6 +45,14 @@ Global
 		{162C7F2B-F58D-4B22-992D-12492C970D17}.Release|Any CPU.Build.0 = Release|Any CPU
 		{162C7F2B-F58D-4B22-992D-12492C970D17}.Release|x64.ActiveCfg = Release|Any CPU
 		{162C7F2B-F58D-4B22-992D-12492C970D17}.Release|x64.Build.0 = Release|Any CPU
+		{F85B81BA-E26D-40BD-84F0-20AAD9B3C972}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F85B81BA-E26D-40BD-84F0-20AAD9B3C972}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F85B81BA-E26D-40BD-84F0-20AAD9B3C972}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F85B81BA-E26D-40BD-84F0-20AAD9B3C972}.Debug|x64.Build.0 = Debug|Any CPU
+		{F85B81BA-E26D-40BD-84F0-20AAD9B3C972}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F85B81BA-E26D-40BD-84F0-20AAD9B3C972}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F85B81BA-E26D-40BD-84F0-20AAD9B3C972}.Release|x64.ActiveCfg = Release|Any CPU
+		{F85B81BA-E26D-40BD-84F0-20AAD9B3C972}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,6 +61,7 @@ Global
 		{BE54C753-4A4B-4324-BF92-1CE3FA5FFA05} = {4E4EE6A3-851F-4D4E-BC59-B8E0D2110F5E}
 		{A1434E73-295D-4F17-A7CE-E3E2E426D2A1} = {4E4EE6A3-851F-4D4E-BC59-B8E0D2110F5E}
 		{162C7F2B-F58D-4B22-992D-12492C970D17} = {4E4EE6A3-851F-4D4E-BC59-B8E0D2110F5E}
+		{F85B81BA-E26D-40BD-84F0-20AAD9B3C972} = {4E4EE6A3-851F-4D4E-BC59-B8E0D2110F5E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {84067795-476F-495C-96EC-A385F1E77A8D}

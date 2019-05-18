@@ -114,6 +114,72 @@ namespace Flare.Backend.Models {
 
         public DateTimeOffset? deleted_at { get; set; }
     }
+
+    public class ip_address {
+        [Key]
+        public long id { get; set; }
+        
+        public string ip { get; set; }
+        
+        public string country_code { get; set; }
+        
+        public string country_name { get; set; }
+        
+        public string city_name { get; set; }
+        
+        public string isp { get; set; }
+        
+        public string organisation { get; set; }
+        
+        public string connection_type { get; set; }
+        
+        public double? latitude { get; set; }
+        
+        public double? longitude { get; set; }
+    }
+
+    public class server {
+        [Key]
+        public int id { get; set; }
+        
+        public string name { get; set; }
+        
+        public bool proxy_active { get; set; }
+        
+        public bool proxy_block_requests { get; set; }
+        
+        public virtual List<server_domain> domains { get; set; }
+        
+        public DateTimeOffset created_at { get; set; }
+        
+        public DateTimeOffset? updated_at { get; set; }
+    }
+
+    public class server_domain {
+        [Key]
+        public int id { get; set; }
+        
+        public int server_id { get; set; }
+        
+        public virtual server server { get; set; }
+        
+        public string domain { get; set; }
+    }
+
+    public class request {
+        [Key]
+        public long id { get; set; }
+        
+        public int server_id { get; set; }
+        
+        public virtual server server { get; set; }
+        
+        public int ip_id { get; set; }
+        
+        public virtual ip_address ip { get; set; }
+        
+        
+    }
     
     public class ApplicationDbContext : DbContext {
 
@@ -126,7 +192,13 @@ namespace Flare.Backend.Models {
         public virtual DbSet<personal_access_token> pacs { get; set; }
         
         public virtual DbSet<file> files { get; set; }
+        
+        public virtual DbSet<ip_address> ip_addresses { get; set; }
+        
+        public virtual DbSet<server> servers { get; set; }
 
+        public virtual DbSet<request> requests { get; set; }
+        
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) {
 
         }
@@ -212,6 +284,16 @@ namespace Flare.Backend.Models {
                 .HasOne(a => a.avatar)
                 .WithMany()
                 .HasForeignKey(a => a.avatar_id);
+            
+            modelBuilder.Entity<server>()
+                .HasMany(a => a.domains)
+                .WithOne(a => a.server)
+                .HasForeignKey(a => a.server_id);
+            
+            modelBuilder.Entity<request>()
+                .HasOne(a => a.ip)
+                .WithMany()
+                .HasForeignKey(a => a.ip_id);
         }
     }
 }

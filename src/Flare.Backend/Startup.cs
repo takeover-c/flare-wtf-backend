@@ -26,6 +26,7 @@ using System.Xml;
 using Microsoft.Extensions.FileProviders;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Flare.Backend.Services;
+using MaxMind.GeoIP2;
 using Tamturk.AspNetCore;
 
 namespace Flare.Backend {
@@ -89,6 +90,8 @@ namespace Flare.Backend {
             var smtp_credientals = new NetworkCredential(_config["smtp:user"], _config["smtp:pass"]);
 
             services
+                .AddSingleton(new WebServiceClient(int.Parse(_config["geoip:user"]), _config["geoip:pass"]))
+                .AddScoped<GeoIpService>()
                 .AddScoped(a => new SmtpClient(smtp_host, _smtp_port) {
                     DeliveryMethod = SmtpDeliveryMethod.Network,
                     UseDefaultCredentials = false,
