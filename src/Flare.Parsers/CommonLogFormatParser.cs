@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web;
 using Flare.Base;
 
 namespace Flare.Parsers {
@@ -11,7 +12,7 @@ namespace Flare.Parsers {
         private readonly Regex regex;
         
         public CommonLogFormatParser(StreamReader streamReader) : base(streamReader) {
-            regex = new Regex(@"^(.*?)\ (.*?)\ (.*?)\ \[(.*)\] \""(.*?)\ (.*?)\ (.*?)\"" (.*)\ (.*)$", RegexOptions.Compiled);
+            regex = new Regex(@"^(.*?)\ (.*?)\ (.*?)\ \[(.*)\] \""(.*?)\ (.*)\ (.*?)\"" (.*)\ (.*)$", RegexOptions.Compiled);
         }
         
         public override async Task<FlareContext> ParseSingle() {
@@ -20,27 +21,37 @@ namespace Flare.Parsers {
             if (string.IsNullOrEmpty(line))
                 return null;
             
-            var matches = regex.Matches(line);
+            var matches = regex.Match(line).Groups;
 
-            var path = matches[5].Value;
+            var path = HttpUtility.UrlDecode(matches[6].Value);
             
-            return new FlareContext() {
+            var context = new FlareContext() {
                 request = new FlareRequest() {
-                    ip = matches[0].Value,
-                    identity = matches[1].Value,
-                    userid = matches[2].Value,
+                    ip = matches[1].Value,
+                    identity = matches[2].Value,
+                    userid = matches[3].Value,
                     // TODO: timezone check on date field
-                    date = DateTime.ParseExact(matches[3].Value, "dd/MMM/yyyy:HH:mm:ss", CultureInfo.InvariantCulture),
-                    method = matches[4].Value,
+                    date = DateTime.ParseExact(matches[4].Value.Split(' ')[0], "dd/MMM/yyyy:HH:mm:ss", CultureInfo.InvariantCulture),
+                    method = matches[5].Value,
                     path = path.Split("?")[0],
-                    query_string = string.Join('?', path.Split("?").Skip(1)),
-                    http_version = (int)(double.Parse(matches[6].Value.Substring(5)) * 10)
+                    query_string = string.Join('?', path.Split("?").Skip(1))
                 },
-                response = new FlareResponse() {
-                    status_code = int.Parse(matches[8].Value),
-                    bytes_sent = int.Parse(matches[9].Value)
-                }
+                response = new FlareResponse()
             };
+
+            if(double.TryParse(matches[7].Value.Substring(5), out var http_version)) {
+                context.request.http_version = (int)(http_version * 10);
+            }
+            
+            if(int.TryParse(matches[9].Value, out var status_code)) {
+                context.response.status_code = status_code;
+            }
+            
+            if(int.TryParse(matches[10].Value, out var bytes_sent)) {
+                context.response.bytes_sent = bytes_sent;
+            }
+
+            return context;
         }
     }
 }

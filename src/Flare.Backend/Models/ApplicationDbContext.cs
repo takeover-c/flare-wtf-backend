@@ -144,6 +144,8 @@ namespace Flare.Backend.Models {
         
         public virtual List<server_domain> domains { get; set; }
         
+        public virtual List<request> requests { get; set; }
+        
         public DateTimeOffset created_at { get; set; }
         
         public DateTimeOffset? updated_at { get; set; }
@@ -311,7 +313,7 @@ namespace Flare.Backend.Models {
             
             modelBuilder.Entity<request>()
                 .HasOne(a => a.server)
-                .WithMany()
+                .WithMany(a => a.requests)
                 .HasForeignKey(a => a.server_id);
         }
     }

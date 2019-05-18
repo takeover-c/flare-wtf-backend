@@ -27,6 +27,7 @@ using Microsoft.Extensions.FileProviders;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Flare.Backend.Services;
 using MaxMind.GeoIP2;
+using Microsoft.AspNetCore.Http.Features;
 using Tamturk.AspNetCore;
 
 namespace Flare.Backend {
@@ -35,11 +36,14 @@ namespace Flare.Backend {
 
         private SecurityKey _key;
 
+        public static string endpoint;
+
         readonly InMemoryCache<Token> token_cache = new InMemoryCache<Token>();
         readonly InMemoryCache<Token> personal_token_cache = new InMemoryCache<Token>();
 
         public Startup(IConfiguration config) {
             _config = config;
+            endpoint = config["endpoint"];
         }
 
         private static RSAParameters LoadKey(string xmlString) {
@@ -129,6 +133,10 @@ namespace Flare.Backend {
                     RequestPath = new PathString("/uploads")
                 })
                 .Use(async (context, next) => {
+                    IHttpBufferingFeature bufferingFeature = context.Features.Get<IHttpBufferingFeature>();
+                    bufferingFeature?.DisableRequestBuffering();
+                    bufferingFeature?.DisableResponseBuffering();
+                    
                     try {
                         await next();
                     } catch (Exception e) {

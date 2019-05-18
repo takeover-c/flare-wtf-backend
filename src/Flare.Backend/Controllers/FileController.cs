@@ -15,7 +15,7 @@ namespace Flare.Backend.Controllers {
 
         public long size { get; set; }
 
-        public string access_url => "https://api.flare.wtf/uploads/" + id + "/" + name;
+        public string access_url => Startup.endpoint + "/uploads/" + id + "/" + name;
     }
     
     public class FileController : Controller {

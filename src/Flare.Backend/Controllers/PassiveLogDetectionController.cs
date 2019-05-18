@@ -19,6 +19,8 @@ namespace Flare.Backend.Controllers {
 
         [HttpPost("server/{server_id}/apache2")]
         public async Task ProcessLogFile(int server_id) {
+            int savecounter = 0;
+            
             using (var streamReader = new StreamReader(Request.Body)) {
                 var commonLogParser = new CommonLogFormatParser(streamReader);
                 
@@ -45,10 +47,13 @@ namespace Flare.Backend.Controllers {
                         response_length = context.response?.bytes_sent,
                         flags = flaggableContext.Flags
                     });
+                    
+                    if(++savecounter % 4000 == 0) {
+                        await db.SaveChangesAsync();
+                        savecounter = 0;
+                    }
                 }
             }
-
-            await db.SaveChangesAsync();
         }
     }
 }

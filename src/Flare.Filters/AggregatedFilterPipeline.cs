@@ -11,6 +11,18 @@ namespace Flare.Filters {
             if ((Flags & (int) VulnerabilityType.SQL) != 0) {
                 baseFilters.Add(new SqlInjectionFilter());
             }
+            
+            if ((Flags & (int) VulnerabilityType.XSS) != 0) {
+                baseFilters.Add(new XSSFilter());
+            }
+            
+            if ((Flags & (int) VulnerabilityType.LFI) != 0) {
+                baseFilters.Add(new LFIFilter());
+            }
+            
+            if ((Flags & (int) VulnerabilityType.SSI) != 0) {
+                baseFilters.Add(new SSIFilter());
+            }
         }
 
         public AggregatedFilterPipeline(List<IBaseFilter> baseFilters) {
