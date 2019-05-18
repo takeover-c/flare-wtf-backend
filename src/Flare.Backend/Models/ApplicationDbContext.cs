@@ -60,13 +60,7 @@ namespace Flare.Backend.Models {
         public byte[] client_secret_hash { get; set; }
 
         public bool trusted { get; set; }
-
-		public string product_name { get; set; }
-
-		public string copyright_text { get; set; }
-
-		public string sender { get; set; }
-
+        
         public virtual List<refresh_token> refresh_tokens { get; set; }
     }
     
@@ -314,6 +308,11 @@ namespace Flare.Backend.Models {
                 .HasOne(a => a.ip)
                 .WithMany()
                 .HasForeignKey(a => a.ip_id);
+            
+            modelBuilder.Entity<request>()
+                .HasOne(a => a.server)
+                .WithMany()
+                .HasForeignKey(a => a.server_id);
         }
     }
 }

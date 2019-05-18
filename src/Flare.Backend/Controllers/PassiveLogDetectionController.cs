@@ -20,9 +20,10 @@ namespace Flare.Backend.Controllers {
         [HttpPost("server/{server_id}/apache2")]
         public async Task ProcessLogFile(int server_id) {
             using (var streamReader = new StreamReader(Request.Body)) {
-                var pipeline = new AggregatedFilterPipeline();
                 var commonLogParser = new CommonLogFormatParser(streamReader);
-
+                
+                var pipeline = new AggregatedFilterPipeline();
+                
                 FlareContext context;
                 while ((context = await commonLogParser.ParseSingle()) != null) {
                     var flaggableContext = new FlaggableFlareContext(context);
