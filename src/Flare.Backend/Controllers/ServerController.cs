@@ -20,19 +20,13 @@ namespace Flare.Backend.Controllers {
         
         public bool? proxy_block_requests { get; set; }
         
-        public virtual List<ServerDomain> domains { get; set; }
+        public virtual List<string> domains { get; set; }
         
         public string origin_ip { get; set; }
         
         public DateTimeOffset created_at { get; set; }
         
         public DateTimeOffset? updated_at { get; set; }
-    }
-
-    public class ServerDomain {
-        public int? id { get; set; }
-        
-        public string domain { get; set; }
     }
 
     public class ServerController : Controller {
@@ -44,10 +38,7 @@ namespace Flare.Backend.Controllers {
             proxy_active = a.proxy_active,
             proxy_block_requests = a.proxy_block_requests,
             domains = a.domains
-                       .Select(b => new ServerDomain() {
-                           id = b.id,
-                           domain = b.domain
-                       })
+                       .Select(b => b.domain)
                        .ToList(),
             origin_ip = a.origin_ip,
             created_at = a.created_at,
@@ -121,31 +112,29 @@ namespace Flare.Backend.Controllers {
                 if(Server.origin_ip != null) {
                     server.origin_ip = Server.origin_ip;
                 }
+                
+                if(Server.domains != null) {
+                    server.domains.RemoveAll(a => !Server.domains.Any(b => b != a.domain));
+                    foreach (var (_domain, Domain, order) in Server.domains
+                                                                   .Select((b, i) => (server.domains.FirstOrDefault(c => c.domain == b), b, i))
+                                                                   .ToList()) {
+                        server_domain domain = _domain;
+                    
+                        if (domain == null) {
+                            domain = new server_domain() {};
+                            server.domains.Add(domain);
+                        }
+
+                        domain.order = order;
+                        domain.domain = Domain;
+                    }
+                }
             } else {
                 server.proxy_block_requests = false;
                 server.origin_ip = null;
+                server.domains.RemoveAll(a => true);
             }
 
-            if(Server.domains != null) {
-                server.domains.RemoveAll(a => !Server.domains.Any(b => b.id != a.id));
-                foreach (var (_domain, Domain, order) in Server.domains
-                            .Select((b, i) => (b.id == null ? null : server.domains.FirstOrDefault(c => c.id == b.id), b, i))
-                            .ToList()) {
-                    server_domain domain = _domain;
-                    
-                    if (domain == null) {
-                        domain = new server_domain() {};
-                        server.domains.Add(domain);
-                    }
-
-                    domain.order = order;
-
-                    if (Domain.domain != null) {
-                        domain.domain = Domain.domain;
-                    }
-                }
-            }
-            
             await db.SaveChangesAsync();
 
             return await single(token, server.id);
