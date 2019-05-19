@@ -166,7 +166,7 @@ namespace Flare.Backend {
                         }
                         
                         var ip = await context.RequestServices.GetRequiredService<GeoIpService>()
-                                              .Query("8.8.8.8");
+                                              .Query(flareContext.Context.request.ip);
                         
                         var db_request = new request {
                             server_id = server.id,
