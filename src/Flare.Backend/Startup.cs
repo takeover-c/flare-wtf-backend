@@ -138,7 +138,7 @@ namespace Flare.Backend {
                     var flareContext = new FlaggableFlareContext(new FlareContext() {
                         request = new FlareRequest() {
                             date = DateTimeOffset.Now,
-                            http_version = int.Parse(context.Request.Protocol.Substring(5)),
+                            http_version = (int)(double.Parse(context.Request.Protocol.Substring(5)) * 10),
                             identity = "-",
                             ip = context.Connection.RemoteIpAddress.ToString(),
                             method = context.Request.Method,
@@ -152,7 +152,7 @@ namespace Flare.Backend {
                     var domain = context.Request.Headers["host"];
                     
                     // Flare CDN logic
-                    if (domain != "localhost" && domain != "api.flare.wtf") {
+                    if (domain != "localhost:5000" && domain != "api.flare.wtf") {
                         var db = context.RequestServices.GetRequiredService<ApplicationDbContext>();
 
                         var server = await db.servers
