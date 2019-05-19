@@ -166,7 +166,7 @@ namespace Flare.Backend {
                         }
                         
                         var ip = await context.RequestServices.GetRequiredService<GeoIpService>()
-                                              .Query(flareContext.Context.request.ip);
+                                              .Query("8.8.8.8");
                         
                         var db_request = new request {
                             server_id = server.id,
@@ -225,12 +225,15 @@ namespace Flare.Backend {
                                     db_request.response_code = context.Response.StatusCode = (int)response.StatusCode;
                                     
                                     context.Response.Headers.Clear();
-                                    foreach (var header in response.Headers) {
+                                    foreach (var header in response.Headers
+                                                                   .Where(a => a.Key != "Transfer-Encoding")) {
                                         context.Response.Headers.Add(header.Key, new StringValues(header.Value.ToArray()));
                                     }
-
-                                    using(var streamWithProgess = new StreamWithProgress(context.Response.Body)) {
-                                        await response.Content.CopyToAsync(streamWithProgess);
+                                    
+                                    using(var streamWithProgess = new StreamWithProgress(response.Content)) {
+                                        await streamWithProgess.CopyToAsync(context.Response.Body);
+                                        //await context.Response.Body.FlushAsync();
+                                        context.Response.Body.Close();
                                         
                                         db_request.response_length = (int)streamWithProgess.bytesTotal;
                                         await db.SaveChangesAsync();
