@@ -230,7 +230,7 @@ namespace Flare.Backend {
                                         context.Response.Headers.Add(header.Key, new StringValues(header.Value.ToArray()));
                                     }
                                     
-                                    using(var streamWithProgess = new StreamWithProgress(response.Content)) {
+                                    using(var streamWithProgess = new StreamWithProgress(response.Content.Body)) {
                                         await streamWithProgess.CopyToAsync(context.Response.Body);
                                         //await context.Response.Body.FlushAsync();
                                         context.Response.Body.Close();
