@@ -186,13 +186,17 @@ namespace Flare.Backend {
                         db.requests.Add(db_request);
                         
                         if (await pipeline.ProcessRequest(flareContext) && server.proxy_block_requests) {
-                            var text =
-                                $"418 - I am a teapot. Your request #{db_request.id} is failed because of security checks. Contact the website owner with this number if you think this was a mistake.";
+                            await db.SaveChangesAsync();
+                            
                             db_request.response_code = 418;
-                            db_request.response_length = text.Length;
                             db_request.flags = flareContext.Flags;
 
                             await db.SaveChangesAsync();
+                            
+                            var text =
+                                $"418 - I am a teapot. Your request #{db_request.id} is failed because of security checks. Contact the website owner with this number if you think this was a mistake.";
+
+                            db_request.response_length = text.Length;
 
                             context.Response.StatusCode = 418;
                             await context.Response.WriteAsync(text);
