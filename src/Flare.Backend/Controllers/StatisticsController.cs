@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Flare.Backend.Models;
@@ -100,7 +98,7 @@ namespace Flare.Backend.Controllers {
                                          bad_count = c.Count(d => d.flags != 0),
                                          ip = c.Key
                                      })
-                                     .First(),
+                                     .FirstOrDefault(),
                                 next_with_city = b.Key.city_name != null ? null : a.requests
                                          .Where(c => c.ip.city_name != null)
                                          .GroupBy(c => c.ip)
@@ -109,7 +107,7 @@ namespace Flare.Backend.Controllers {
                                              bad_count = c.Count(d => d.flags != 0),
                                              ip = c.Key
                                          })
-                                         .First(),
+                                         .FirstOrDefault(),
                                 bad_count = b.Count(c => c.flags != 0),
                                 by_vuln = b
                                     .Where(c => c.flags != 0)
@@ -118,7 +116,7 @@ namespace Flare.Backend.Controllers {
                                     .ToList(),
                                 ip = b.Key
                             })
-                            .First()
+                            .FirstOrDefault()
                 })
                 .SingleAsync();
             return stats;
