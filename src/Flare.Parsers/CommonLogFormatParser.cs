@@ -30,8 +30,7 @@ namespace Flare.Parsers {
                     ip = matches[1].Value,
                     identity = matches[2].Value,
                     userid = matches[3].Value,
-                    // TODO: timezone check on date field
-                    date = DateTime.ParseExact(matches[4].Value.Split(' ')[0], "dd/MMM/yyyy:HH:mm:ss", CultureInfo.InvariantCulture),
+                    date = DateTimeOffset.ParseExact(matches[4].Value, "dd/MMM/yyyy:HH:mm:ss zzz", CultureInfo.InvariantCulture),
                     method = matches[5].Value,
                     path = path.Split("?")[0],
                     query_string = string.Join('?', path.Split("?").Skip(1))
@@ -43,11 +42,11 @@ namespace Flare.Parsers {
                 context.request.http_version = (int)(http_version * 10);
             }
             
-            if(int.TryParse(matches[9].Value, out var status_code)) {
+            if(int.TryParse(matches[8].Value, out var status_code)) {
                 context.response.status_code = status_code;
             }
             
-            if(int.TryParse(matches[10].Value, out var bytes_sent)) {
+            if(int.TryParse(matches[9].Value, out var bytes_sent)) {
                 context.response.bytes_sent = bytes_sent;
             }
 

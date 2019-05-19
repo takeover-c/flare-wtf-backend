@@ -54,6 +54,8 @@ namespace Flare.Backend.Controllers {
                     }
                 }
             }
+
+            await db.SaveChangesAsync();
         }
     }
 }
