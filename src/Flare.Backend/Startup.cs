@@ -222,11 +222,15 @@ namespace Flare.Backend {
                                 _req.Headers.Host = domain;
                                 
                                 using (var response = await httpClient.SendAsync(_req)) {
-                                    db_request.response_code = context.Response.StatusCode = (int)response.StatusCode;
                                     
-                                    context.Response.Headers.Clear();
+                                    db_request.response_code = context.Response.StatusCode = (int)response.StatusCode;
+
                                     foreach (var header in response.Headers
                                                                    .Where(a => a.Key != "Transfer-Encoding")) {
+                                        context.Response.Headers.Add(header.Key, new StringValues(header.Value.ToArray()));
+                                    }
+                                    
+                                    foreach (var header in response.Content.Headers) {
                                         context.Response.Headers.Add(header.Key, new StringValues(header.Value.ToArray()));
                                     }
                                     
