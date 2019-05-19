@@ -68,7 +68,6 @@ namespace Flare.Backend.Controllers {
                                  .Select(b => new { b.Key, Count = b.Count() })
                                  .ToList(),
                     by_countries = a.requests
-                            .Where(b => b.flags != 0)
                             .GroupBy(b => b.ip.country_name)
                             .OrderByDescending(b => b.Count())
                             .Select(b => new { b.Key, Count = b.Count(), Good = b.Count(c => c.flags == 0), Bad = b.Count(c => c.flags != 0) })
