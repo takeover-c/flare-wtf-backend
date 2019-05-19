@@ -22,6 +22,8 @@ namespace Flare.Backend.Controllers {
         
         public virtual List<ServerDomain> domains { get; set; }
         
+        public string origin_ip { get; set; }
+        
         public DateTimeOffset created_at { get; set; }
         
         public DateTimeOffset? updated_at { get; set; }
@@ -47,6 +49,7 @@ namespace Flare.Backend.Controllers {
                            domain = b.domain
                        })
                        .ToList(),
+            origin_ip = a.origin_ip,
             created_at = a.created_at,
             updated_at = a.updated_at
         };
@@ -110,8 +113,17 @@ namespace Flare.Backend.Controllers {
                 server.proxy_active = Server.proxy_active.Value;
             }
             
-            if(Server.proxy_block_requests != null) {
-                server.proxy_block_requests = Server.proxy_block_requests.Value;
+            if(server.proxy_active) {
+                if(Server.proxy_block_requests != null) {
+                    server.proxy_block_requests = Server.proxy_block_requests.Value;
+                }
+                
+                if(Server.origin_ip != null) {
+                    server.origin_ip = Server.origin_ip;
+                }
+            } else {
+                server.proxy_block_requests = false;
+                server.origin_ip = null;
             }
 
             if(Server.domains != null) {

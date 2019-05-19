@@ -142,6 +142,8 @@ namespace Flare.Backend.Models {
         
         public bool proxy_block_requests { get; set; }
         
+        public string origin_ip { get; set; }
+        
         public virtual List<server_domain> domains { get; set; }
         
         public virtual List<request> requests { get; set; }

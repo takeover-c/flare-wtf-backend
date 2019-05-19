@@ -18,6 +18,7 @@ using System.Text;
 using Flare.Backend.Controllers;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using System.Net;
+using System.Net.Http;
 using System.Net.Mail;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -26,8 +27,12 @@ using System.Xml;
 using Microsoft.Extensions.FileProviders;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Flare.Backend.Services;
+using Flare.Base;
+using Flare.Filters;
 using MaxMind.GeoIP2;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.Primitives;
 using Tamturk.AspNetCore;
 
 namespace Flare.Backend {
@@ -122,10 +127,130 @@ namespace Flare.Backend {
                 scope.ServiceProvider.GetService<ApplicationDbContext>().Database.Migrate();
             }
             
+            var pipeline = new AggregatedFilterPipeline();
+            
             app
                 .UseForwardedHeaders(new ForwardedHeadersOptions {
                     ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
                     KnownNetworks = { new IPNetwork(new IPAddress(new byte[] { 127, 0, 0, 1 }), 32 )}
+                })
+                .Use(async (context, next) => {
+                    var flareContext = new FlaggableFlareContext(new FlareContext() {
+                        request = new FlareRequest() {
+                            date = DateTimeOffset.Now,
+                            http_version = int.Parse(context.Request.Protocol.Substring(5)),
+                            identity = "-",
+                            ip = context.Connection.RemoteIpAddress.ToString(),
+                            method = context.Request.Method,
+                            path = context.Request.Path.Value,
+                            query_string = context.Request.QueryString.Value,
+                            userid = "-"
+                        },
+                        response = null
+                    });
+                    
+                    var domain = context.Request.Headers["host"];
+                    
+                    // Flare CDN logic
+                    if (domain != "localhost" && domain != "api.flare.wtf") {
+                        var db = context.RequestServices.GetRequiredService<ApplicationDbContext>();
+
+                        var server = await db.servers
+                          .Where(a => a.proxy_active && a.domains.Any(b => b.domain == domain))
+                          .FirstOrDefaultAsync();
+
+                        if (server == null) {
+                            context.Response.StatusCode = 404;
+                            await context.Response.WriteAsync("The requested resource is not found. That's all we know.");
+                            return;
+                        }
+                        
+                        var ip = await context.RequestServices.GetRequiredService<GeoIpService>()
+                                              .Query(flareContext.Context.request.ip);
+                        
+                        var db_request = new request {
+                            server_id = server.id,
+                            ip_id = ip.id,
+                            request_identity = flareContext.Context.request.identity,
+                            request_user_id = flareContext.Context.request.userid,
+                            request_date = flareContext.Context.request.date,
+                            request_method = flareContext.Context.request.method,
+                            request_path = flareContext.Context.request.path,
+                            request_query_string = flareContext.Context.request.query_string,
+                            request_http_version = flareContext.Context.request.http_version,
+                         //   response_code = flareContext.Context.response?.status_code,
+                         //   response_length = flareContext.Context.response?.bytes_sent,
+                         //   flags = flareContext.Flags
+                        };
+
+                        db.requests.Add(db_request);
+                        
+                        if (await pipeline.ProcessRequest(flareContext) && server.proxy_block_requests) {
+                            var text =
+                                $"418 - I am a teapot. Your request #{db_request.id} is failed because of security checks. Contact the website owner with this number if you think this was a mistake.";
+                            db_request.response_code = 418;
+                            db_request.response_length = text.Length;
+                            db_request.flags = flareContext.Flags;
+
+                            await db.SaveChangesAsync();
+
+                            context.Response.StatusCode = 418;
+                            await context.Response.WriteAsync(text);
+                            return;
+                        }
+
+                        db_request.flags = flareContext.Flags;
+                        
+                        using (var httpClient = new HttpClient()) {
+                            httpClient.DefaultRequestHeaders.Clear();
+                            foreach (var header in context.Request.Headers
+                                                          .Where(a => !a.Key.StartsWith("X-"))) {
+                                httpClient.DefaultRequestHeaders.Add(header.Key, header.Value.ToArray());
+                            }
+                            
+                            httpClient.DefaultRequestHeaders.Add("X-Forwarded-For", context.Connection.RemoteIpAddress.ToString());
+                            
+                            using(var _req = new HttpRequestMessage(
+                                context.Request.Method == "GET" ? HttpMethod.Get :
+                                context.Request.Method == "POST" ? HttpMethod.Post :
+                                context.Request.Method == "DELETE" ? HttpMethod.Delete :
+                                context.Request.Method == "PUT" ? HttpMethod.Put :
+                                context.Request.Method == "PATCH" ? HttpMethod.Patch :
+                                context.Request.Method == "TRACE" ? HttpMethod.Trace :
+                                context.Request.Method == "OPTIONS" ? HttpMethod.Options : throw new Exception("invalid method")
+                                , $"http://{server.origin_ip}{context.Request.Path}{context.Request.QueryString}")) {
+                                _req.Headers.Host = domain;
+                                
+                                using (var response = await httpClient.SendAsync(_req)) {
+                                    db_request.response_code = context.Response.StatusCode = (int)response.StatusCode;
+                                    
+                                    context.Response.Headers.Clear();
+                                    foreach (var header in response.Headers) {
+                                        context.Response.Headers.Add(header.Key, new StringValues(header.Value.ToArray()));
+                                    }
+
+                                    using(var streamWithProgess = new StreamWithProgress(context.Response.Body)) {
+                                        await response.Content.CopyToAsync(streamWithProgess);
+                                        
+                                        db_request.response_length = (int)streamWithProgess.bytesTotal;
+                                        await db.SaveChangesAsync();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        if (await pipeline.ProcessRequest(flareContext)) {
+                            var text =
+                                $"418 - I am a teapot. Your request is failed because of security checks. If you think it was a mistake contact support@flare.wtf";
+                            
+                            context.Response.StatusCode = 418;
+                            await context.Response.WriteAsync(text);
+                            return;
+                        }
+                        
+                        await next();
+                    }
                 })
                 .UseCors(policy => policy.SetPreflightMaxAge(TimeSpan.FromMinutes(10)).AllowAnyMethod().AllowAnyOrigin().AllowAnyHeader())
                 .UseStaticFiles(new StaticFileOptions {
